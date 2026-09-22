@@ -1,0 +1,25 @@
+server:
+  port: 8080
+  address: 127.0.0.1   # demo-only: never bind 0.0.0.0 (PRD §4.6.2)
+
+spring:
+  application:
+    name: jev-guard
+  config:
+    import: classpath:risk-rules.yml
+
+jevguard:
+  typesafe:
+    base-url: https://api.typesafe.ai/v1/systemone
+    api-key: ${TYPESAFE_API_KEY:}      # empty => MockJevClient
+    model: ${JEV_MODEL:jev-latest}
+    timeout-ms: 8000
+  rules-file: classpath:risk-rules.yml
+  decision-log: logs/decisions.jsonl
+  simulator:
+    auto-run: false
+    interval-ms: 2000
+
+logging:
+  level:
+    com.jevguard: INFO

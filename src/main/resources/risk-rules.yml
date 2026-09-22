@@ -1,0 +1,56 @@
+# jev-guard 风控规则与阈值（PRD §4.3 / §4.4.1 / §4.5.1）
+# 由 application.yml 的 spring.config.import 引入，绑定到 RiskRulesConfig(prefix=jevguard.rules)。
+# 阈值为初始拍定值，M4 校准评估给出推荐值后人工确认再改，不自动回灌。
+
+jevguard:
+  rules:
+    amountBands:            # 金额分档（USD）
+      dust: 10
+      small: 1000
+      medium: 10000
+      large: 100000
+      # > large => whale
+
+    hardRules:
+      maxSingleTxUsd: 500000        # 单笔超限额 -> MANUAL_REVIEW
+      blacklist:                    # 内置样例名单：机制已实现，数据源未接入（PRD §4.3）
+        - "0x0000000000000000000000000000000000000bad"
+        - "0x1111111111111111111111111111111111111bad"
+      sanctionedLabel: sanctioned   # counterpartyLabel == 此值 -> FREEZE
+
+    gate:
+      pFreeze: 0.80       # should_freeze 概率阈值（答案值本身）
+      cHigh: 0.70         # should_freeze 派生信度高阈值
+      cLow: 0.60          # confidence[risk_level] 低阈值
+      highRiskOrdinal: 4  # risk_level 序数 >= 此值为高风险（normal=1..critical=5）
+
+    questions:
+      risk_level:
+        type: score
+        instructions: "Overall money-laundering / fraud risk level of this transfer, based only on the features given."
+        criteria:
+          - "normal: no risk signals at all"
+          - "watch: a single weak signal"
+          - "suspicious: multiple weak signals or one medium signal"
+          - "high_risk: clear fraud or money-laundering pattern"
+          - "critical: multiple strong signals combined"
+      pattern:
+        type: choice
+        instructions: "Which behavioral pattern best describes this transfer?"
+        criteria:
+          normal: "routine transfer with no suspicious structure"
+          structuring: "amounts split to stay below review thresholds"
+          rapid_in_out: "funds deposited and withdrawn again within a very short window"
+          mixer_linked: "counterparty is a known mixer or obfuscation service"
+          new_address_burst: "brand-new address with abnormally high activity in a short time"
+          dust_probe: "very small probing transfers, often preceding larger fraud"
+      should_freeze:
+        type: noul
+        instructions: "The risk signals justify immediately freezing this transfer pending review."
+      route:            # 对照项：只记录，不参与路由（PRD §4.4，审计 D1）
+        type: choice
+        instructions: "What should the system do with this transfer?"
+        criteria:
+          auto_pass: "let it through automatically"
+          manual_review: "hold for human review"
+          freeze: "freeze immediately"
