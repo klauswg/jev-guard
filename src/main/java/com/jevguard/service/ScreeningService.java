@@ -11,6 +11,7 @@ import com.jevguard.feature.FeatureBuilder;
 import com.jevguard.gate.GateLogic;
 import com.jevguard.log.DecisionLog;
 import com.jevguard.rule.HardRuleEngine;
+import com.jevguard.rule.QuestionSchema;
 import com.jevguard.rule.RiskRulesConfig;
 import com.jevguard.state.StateRenderer;
 import org.slf4j.Logger;
@@ -18,12 +19,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 主链路（PRD §3）：
@@ -110,37 +108,9 @@ public class ScreeningService {
                 jev, action, reason, featureMs, jevMs, totalMs, degraded);
     }
 
-    /**
-     * risk-rules.yml 的问题 schema 透传，并做一处规范化：
-     * Spring Binder 把 YAML 序列绑进 Map<String,Object> 时会变成 {"0":..,"1":..} 索引 Map（实测，M3），
-     * 上游要求 score.criteria 是真正的 List，这里按数字键排序还原。
-     */
+    /** risk-rules.yml 的 4 个问题 schema（构建逻辑见 QuestionSchema，EvalRunner 共用）。 */
     private Map<String, Object> questionSchema() {
-        Map<String, Object> q = new HashMap<>();
-        rules.getQuestions().forEach((k, v) -> {
-            Map<String, Object> item = new HashMap<>(v);
-            Object criteria = item.get("criteria");
-            if (criteria instanceof Map<?, ?> m && isIndexedMap(m)) {
-                item.put("criteria", indexedMapToList(m));
-            }
-            q.put(k, item);
-        });
-        return q;
-    }
-
-    private boolean isIndexedMap(Map<?, ?> m) {
-        if (m.isEmpty()) return false;
-        for (Object key : m.keySet()) {
-            if (!(key instanceof String s) || !s.matches("\\d+")) return false;
-        }
-        return true;
-    }
-
-    private List<Object> indexedMapToList(Map<?, ?> m) {
-        return m.entrySet().stream()
-                .sorted(Comparator.comparingInt(e -> Integer.parseInt((String) e.getKey())))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        return QuestionSchema.build(rules);
     }
 
     public boolean isMockMode() {
