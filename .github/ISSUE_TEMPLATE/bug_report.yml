@@ -1,0 +1,36 @@
+# 放到 .github/ISSUE_TEMPLATE/bug_report.yml（jev-guard / jev-suite 通用）
+name: 🐛 Bug Report
+description: Something is not working as described
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report. Note: this project keeps deterministic
+        behavior in code — if the model's judgment seems wrong but the code behaved
+        as designed, that's usually a **calibration/tuning** topic, please use the
+        feature/tuning template instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Steps to reproduce, expected vs actual behavior.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: e.g. v0.1.0 or commit sha
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Running mode
+      options:
+        - Mock / offline fixture mode
+        - Real API mode
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      render: shell

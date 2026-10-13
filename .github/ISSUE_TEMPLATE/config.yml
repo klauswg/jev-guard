@@ -1,0 +1,10 @@
+# 放到 .github/ISSUE_TEMPLATE/config.yml（jev-guard / jev-suite 通用）
+# 在 issue 选择页顶部给出社区入口，避免"用 issue 当论坛"
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 General discussion
+    url: https://github.com/klauswg/jev-suite/discussions
+    about: Questions, ideas, calibration results — please use Discussions, not issues
+  - name: 📖 What is Jev?
+    url: https://github.com/klauswg/jev-suite#readme
+    about: Background on Jev (TypeSafe System One) and the "model triages, code decides" design

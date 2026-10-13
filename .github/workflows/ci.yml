@@ -1,0 +1,32 @@
+# 放到 jev-suite 和 jev-guard 的 .github/workflows/ci.yml
+# 作用：每次 push / PR 自动 mvn package，证明主分支始终可构建
+# （eval 校准需要真实 API key，CI 里不跑，只跑单测和打包）
+
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build & test
+        run: mvn -B package
+
+      # 可选：jev-suite 里的 jev-proof 需要 yt-dlp，如后续把它的测试接入 CI 再打开
+      # - name: Install yt-dlp (for jev-proof tests)
+      #   run: |
+      #     sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+      #     sudo chmod +x /usr/local/bin/yt-dlp

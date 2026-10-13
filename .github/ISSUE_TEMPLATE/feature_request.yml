@@ -1,0 +1,28 @@
+# 放到 .github/ISSUE_TEMPLATE/feature_request.yml（jev-guard / jev-suite 通用）
+name: 💡 Feature / Tuning Request
+description: New app idea, threshold tuning, eval improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What decision problem are you trying to solve?
+      description: |
+        This project family answers "did it actually happen as required?" style
+        questions. Describe the real-world check you want to add.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What evidence would the model see?
+      description: Which external inputs (texts, transcripts, listings...) would be sanitized and fed in?
+  - type: checkboxes
+    id: design-rules
+    attributes:
+      label: Design-rule check
+      options:
+        - label: The final decision can stay in deterministic code (thresholds/vetoes/routing)
+          required: true
+        - label: Failure mode degrades toward human review, never auto-pass
+          required: true
